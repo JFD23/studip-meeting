@@ -364,7 +364,7 @@ class Driver
                     $isValid = false;
                     break;
                 }
-                if ($server_info['maxParticipants'] != '' && $server_info['maxParticipants'] > 0) {
+                if (isset($values['maxParticipants']) && $server_info['maxParticipants'] != '' && $server_info['maxParticipants'] > 0) {
                     if ($values['minParticipants'] > $server_info['maxParticipants']) {
                         $isValid = false;
                         break;
