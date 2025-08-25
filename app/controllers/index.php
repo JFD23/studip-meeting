@@ -30,7 +30,7 @@ use Meetings\Models\I18N;
  * @property \MeetingPlugin         $plugin
  * @property bool                   $configured
  * @property \Seminar_Perm          $perm
- * @property \Flexi_TemplateFactory $templateFactory
+ * @property \Flexi\Factory         $templateFactory
  * @property CourseConfig           $courseConfig
  * @property bool                   $confirmDeleteMeeting
  * @property bool                   $saved
@@ -50,7 +50,12 @@ class IndexController extends MeetingsController
      */
     private $driver;
 
-    public function __construct($dispatcher)
+    /**
+     * Constructor for the IndexController.
+     *
+     * @param Trails\Dispatcher $dispatcher
+     */
+    public function __construct(\Trails\Dispatcher $dispatcher)
     {
         parent::__construct($dispatcher);
 
@@ -69,19 +74,17 @@ class IndexController extends MeetingsController
             }
         }
 
-        $this->plugin = $dispatcher->current_plugin;
-
         // Localization
         $this->_ = function ($string) use ($dispatcher) {
             return call_user_func_array(
-                [$dispatcher->current_plugin, '_'],
+                [$this->plugin, '_'],
                 func_get_args()
             );
         };
 
         $this->_n = function ($string0, $tring1, $n) use ($dispatcher) {
             return call_user_func_array(
-                [$dispatcher->current_plugin, '_n'],
+                [$this->plugin, '_n'],
                 func_get_args()
             );
         };
@@ -192,7 +195,7 @@ class IndexController extends MeetingsController
         }
 
         if (Request::method() === 'POST') {
-            CSRFProtection::verifyRequest();
+            CSRFProtection::verifyUnsafeRequest();
             $this->courseConfig->title = Request::get('title');
             $this->courseConfig->store();
 

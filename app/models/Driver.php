@@ -93,7 +93,7 @@ class Driver
 
         // remove non existent drivers from config
         foreach (self::$config as $driver_name => $data) {
-            if (!$drivers[$driver_name]) {
+            if (!isset($drivers[$driver_name])) {
                 unset (self::$config[$driver_name]);
             }
         }
@@ -364,7 +364,7 @@ class Driver
                     $isValid = false;
                     break;
                 }
-                if ($server_info['maxParticipants'] != '' && $server_info['maxParticipants'] > 0) {
+                if (isset($values['maxParticipants']) && $server_info['maxParticipants'] != '' && $server_info['maxParticipants'] > 0) {
                     if ($values['minParticipants'] > $server_info['maxParticipants']) {
                         $isValid = false;
                         break;

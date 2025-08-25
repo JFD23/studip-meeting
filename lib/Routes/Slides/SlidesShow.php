@@ -44,6 +44,7 @@ class SlidesShow extends MeetingsController
             return;
         }
         try {
+            ob_start();
             $file_ref = \FileRef::find($silde_id);
             $meeting = new Meeting($meeting_id);
             $file_name = $file_ref->name;
@@ -63,8 +64,8 @@ class SlidesShow extends MeetingsController
             $redirect_url_file = '';
             if (method_exists($file_ref, 'getFileType')) { // StudIP >= 4.6
                 $path_file = is_a($file_ref->file->filetype, "URLFile")
-                       ? $file_ref->file->metadata['url']
-                       : $file_ref->file->path;
+                    ? $file_ref->file->metadata['url']
+                    : $file_ref->file->path;
                 $is_url_file =  !is_a($file_ref->file->filetype, "URLFile") ? false : true;
                 $redirect_url_file = $file_ref->file->metadata['access_type'];
                 $filesize = $file_ref->getFileType()->getSize();
@@ -85,8 +86,6 @@ class SlidesShow extends MeetingsController
                 die();
             }
             $content_type = $file_ref->mime_type ?: get_mime_type($file_name);
-            // close session, download will mostly be a parallel action
-            page_close();
 
             // output_buffering may be explicitly or implicitly enabled
             while (ob_get_level()) {
@@ -132,7 +131,7 @@ class SlidesShow extends MeetingsController
 
             header("Expires: Mon, 12 Dec 2001 08:00:00 GMT");
             header("Last-Modified: " . gmdate ("D, d M Y H:i:s") . " GMT");
-            if ($_SERVER['HTTPS'] == "on"){
+            if (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == "on"){
                 header("Pragma: public");
                 header("Cache-Control: private");
             } else {
@@ -143,6 +142,12 @@ class SlidesShow extends MeetingsController
             header("Content-Type: $content_type");
             header("Content-Disposition: inline; " . encode_header_parameter('filename', $file_name));
             readfile_chunked($path_file, $start, $end);
+            ob_end_flush();
+
+            return $this->createResponse([
+                'message' => _('File successfully served.'),
+                'status' => 'success'
+            ], $response);
         } catch (Exception $e) {
             throw new Error($e->getMessage(), 404);
         }

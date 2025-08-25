@@ -26,6 +26,7 @@ class TemplatePreview extends MeetingsController
     {
         $page = filter_var($args['page'], FILTER_SANITIZE_NUMBER_INT);
         try {
+            ob_start();
             $pdf = DefaultSlideHelper::getInstance()->generatePDFPreview($page);
             if (!$pdf) {
                 return;
@@ -40,9 +41,6 @@ class TemplatePreview extends MeetingsController
             if (!$filesize) {
                 return;
             }
-
-            // close session, download will mostly be a parallel action
-            page_close();
 
             // output_buffering may be explicitly or implicitly enabled
             while (ob_get_level()) {
@@ -85,7 +83,7 @@ class TemplatePreview extends MeetingsController
 
             header("Expires: Mon, 12 Dec 2001 08:00:00 GMT");
             header("Last-Modified: " . gmdate ("D, d M Y H:i:s") . " GMT");
-            if ($_SERVER['HTTPS'] == "on"){
+            if (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == "on"){
                 header("Pragma: public");
                 header("Cache-Control: private");
             } else {
@@ -98,6 +96,12 @@ class TemplatePreview extends MeetingsController
             readfile_chunked($temp_file, $start, $end);
 
             unlink($temp_file);
+            ob_end_flush();
+
+            return $this->createResponse([
+                'message' => _('PDF-Vorschau erfolgreich erstellt.'),
+                'status' => 'success'
+            ], $response);
         } catch (Exception $e) {
             throw new Error($e->getMessage(), 404);
         }

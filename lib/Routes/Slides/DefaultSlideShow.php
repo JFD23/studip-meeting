@@ -41,6 +41,7 @@ class DefaultSlideShow extends MeetingsController
             return;
         }
         try {
+            ob_start();
             $meeting = new Meeting($meeting_id);
 
             //Token check
@@ -74,9 +75,6 @@ class DefaultSlideShow extends MeetingsController
             if (!$filesize) {
                 return;
             }
-
-            // close session, download will mostly be a parallel action
-            page_close();
 
             // output_buffering may be explicitly or implicitly enabled
             while (ob_get_level()) {
@@ -119,7 +117,7 @@ class DefaultSlideShow extends MeetingsController
 
             header("Expires: Mon, 12 Dec 2001 08:00:00 GMT");
             header("Last-Modified: " . gmdate ("D, d M Y H:i:s") . " GMT");
-            if ($_SERVER['HTTPS'] == "on"){
+            if (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == "on"){
                 header("Pragma: public");
                 header("Cache-Control: private");
             } else {
@@ -132,6 +130,12 @@ class DefaultSlideShow extends MeetingsController
             readfile_chunked($temp_file, $start, $end);
 
             unlink($temp_file);
+            ob_end_flush();
+
+            return $this->createResponse([
+                'message' => _('File successfully served.'),
+                'status' => 'success'
+            ], $response);
         } catch (Exception $e) {
             throw new Error($e->getMessage(), 404);
         }

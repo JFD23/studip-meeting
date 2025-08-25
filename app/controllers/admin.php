@@ -21,7 +21,7 @@ use ElanEv\Model\Driver;
 
 /**
  * @property \MeetingPlugin         $plugin
- * @property \Flexi_TemplateFactory $templateFactory
+ * @property \Flexi\Factory         $templateFactory
  * @property bool                   $saved
  * @property array                  $errors
  * @property string                 $deleteAction
@@ -36,27 +36,25 @@ class AdminController extends MeetingsController
     /**
      * Constructs the controller and provide translations methods.
      *
-     * @param object $dispatcher
+     * @param \Trails\Dispatcher $dispatcher
      * @see https://stackoverflow.com/a/12583603/982902 if you need to overwrite
      *      the constructor of the controller
      */
-    public function __construct($dispatcher)
+    public function __construct(\Trails\Dispatcher $dispatcher)
     {
         parent::__construct($dispatcher);
-
-        $this->plugin = $dispatcher->current_plugin;
 
         // Localization
         $this->_ = function ($string) use ($dispatcher) {
             return call_user_func_array(
-                [$dispatcher->current_plugin, '_'],
+                [$this->plugin, '_'],
                 func_get_args()
             );
         };
 
         $this->_n = function ($string0, $tring1, $n) use ($dispatcher) {
             return call_user_func_array(
-                [$dispatcher->current_plugin, '_n'],
+                [$this->plugin, '_n'],
                 func_get_args()
             );
         };
